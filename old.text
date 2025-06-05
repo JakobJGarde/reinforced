@@ -1,0 +1,49 @@
+<Canvas>
+        <mesh>
+          <ambientLight intensity={0.1} />
+          <directionalLight color="white" position={[0, 0, 5]} />
+          <boxGeometry args={[2, 2, 2]} />
+          <meshStandardMaterial color="orange" />
+        </mesh>
+      </Canvas>
+      <div className="relative h-screen w-screen bg-zinc-900">
+        <div className="z-index-10 absolute block w-full text-center text-white select-none">
+          <div className="">
+            Move with A/D keys or Left/Right arrows. Press Space to restart
+          </div>
+          <div className="">Score: 0</div>
+          <div id="gameOver" className="">
+            Game Over!
+            <span id="finalScore">Score: 0</span>
+          </div>
+        </div>
+        <button
+          id="startButton"
+          className="absolute top-2/3 left-1/2 z-10 block -translate-x-1/2 translate-y-1/2 cursor-pointer rounded-lg bg-zinc-300 px-4 py-8 text-2xl transform-content"
+        >
+          Start Game
+        </button>
+        <button
+          id="autoPlayButton"
+          className="absolute top-2/3 left-1/2 z-10 block translate-x-1/2 translate-y-1/2 cursor-pointer rounded-lg bg-zinc-300 px-4 py-8 text-2xl transform-content"
+        >
+          Enable Auto-Play
+        </button>
+        <div className="absolute top-4 right-4 z-10 block bg-zinc-700/70 p-4 text-lg text-white">
+          <div>
+            Episodes: <span id="episodes">0</span>
+          </div>
+          <div>
+            Avg Reward: <span id="avgReward">0</span>
+          </div>
+          <div>
+            Best Score: <span id="bestScore">0</span>
+          </div>
+          <div>
+            Exploration: <span id="exploration">30%</span>
+          </div>
+          <div>
+            Learning: <span id="learning">ON</span>
+          </div>
+        </div>
+      </div>
