@@ -1,7 +1,7 @@
 {
   "$schema": "https://json.schemastore.org/package.json",
   "name": "reinforced",
-  "homepage": "https://jakobjgarde.github-pages.com/reinforced",
+  "homepage": "https://jakobjgarde.github.io/reinforced/",
   "private": true,
   "version": "0.0.0",
   "type": "module",
