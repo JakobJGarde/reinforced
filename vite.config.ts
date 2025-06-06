@@ -17,7 +17,7 @@ export default {
     // .js file support as if it was JSX
     {
       name: "load+transform-js-files-as-jsx",
-      async transform(code, id) {
+      async transform(code: string, id: string) {
         if (!id.match(/src\/.*\.js$/)) return null;
 
         return transformWithEsbuild(code, id, {

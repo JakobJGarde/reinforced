@@ -2,10 +2,14 @@ import "./style.css";
 import ReactDOM from "react-dom/client";
 import { Canvas } from "@react-three/fiber";
 import { KeyboardControls } from "@react-three/drei";
-import Experience from "./Experience.jsx";
-import Interface from "./Interface.js";
+import Experience from "./Experience/index.js";
+import Overlay from "./Overlay/index.js";
 
-const root = ReactDOM.createRoot(document.querySelector("#root"));
+const container = document.querySelector("#root");
+if (!container) {
+  throw new Error("Root container not found");
+}
+const root = ReactDOM.createRoot(container);
 
 root.render(
   <KeyboardControls
@@ -28,6 +32,6 @@ root.render(
     >
       <Experience />
     </Canvas>
-    <Interface />
+    <Overlay />
   </KeyboardControls>,
 );
