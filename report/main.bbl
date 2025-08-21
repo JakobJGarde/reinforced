@@ -1,0 +1,25 @@
+\begin{thebibliography}{1}
+
+\bibitem{bellman1957}
+R.~Bellman, {\em Dynamic Programming}.
+\newblock Princeton, NJ: Princeton University Press, 1957.
+
+\bibitem{sutton2018reinforcement}
+R.~S. Sutton and A.~G. Barto, {\em Reinforcement Learning: An Introduction}.
+\newblock Cambridge, MA: MIT Press, 2nd~ed., 2018.
+
+\bibitem{watkins1992q}
+C.~J. Watkins and P.~Dayan, ``Q-learning,'' {\em Machine Learning}, vol.~8, no.~3, pp.~279--292, 1992.
+
+\bibitem{thrun1992efficient}
+S.~B. Thrun, ``Efficient exploration in reinforcement learning,'' {\em Technical Report}, 1992.
+
+\bibitem{gymnasium2023}
+F.~Foundation, ``Gymnasium,'' 2023.
+\newblock Accessed: January 2025.
+
+\bibitem{johnson2020barriers}
+A.~Johnson and D.~Lee, ``Barriers to reinforcement learning education in computer science curricula,'' {\em Computer Science Education}, vol.~30, no.~4, pp.~401--420, 2020.
+\newblock Example citation - replace with actual source.
+
+\end{thebibliography}

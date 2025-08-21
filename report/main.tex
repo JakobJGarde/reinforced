@@ -1,0 +1,50 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{cite}
+\usepackage{hyperref}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{pgfplots, pgfplotstable}
+\pgfplotsset{compat=1.18}
+
+\input{utils}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+\begin{document}
+
+\title{Interactive Reinforcement Learning\\
+{\footnotesize A Browser-Based Environment for Educational Q-Learning Visualization}
+}
+
+\author{\IEEEauthorblockN{Jakob Johannes Garde}
+\IEEEauthorblockA{jgard22@student.sdu.dk}}
+
+\maketitle
+
+\begin{abstract}
+Reinforcement learning education faces significant challenges as students struggle to understand abstract concepts like exploration-exploitation trade-offs through mathematical formulations alone. Traditional approaches require complex programming environments and non-real-time training, obscuring fundamental principles. This paper presents a browser-based Q-learning environment enabling real-time visualization of learning behavior with simplified parameter control.
+
+The system implements a navigation task where an agent learns to reach a goal while avoiding obstacles, using tabular Q-learning with user-controllable learning rate, discount factor, exploration rate, and reward structure. The web interface provides immediate observation of learning dynamics without programming requirements, featuring real-time monitoring, dynamic obstacle toggling, and data export capabilities.
+
+Experimental results demonstrate educational effectiveness through three scenarios: learning without obstacles, mid-training obstacle introduction, and learning with obstacles from initialization. Results clearly show how environmental complexity affects performance and highlight limitations of fixed exploration strategies. When obstacles are introduced mid-training, performance degrades significantly with insufficient recovery due to low exploration rates, demonstrating the need for adaptive exploration mechanisms.
+
+The system successfully bridges theoretical reinforcement learning concepts with intuitive understanding through accessible visualization and parameter manipulation, validating the educational value of simplified, real-time learning environments.
+
+\href{https://jakobjgarde.github.io/reinforced/}{\color{blue}\textit{Link to online demo}}.
+\end{abstract}
+
+\input{sections/introduction.tex}
+\input{sections/literature_review}
+\input{sections/methodology}
+\input{sections/results.tex}
+\input{sections/discussion.tex}
+
+\bibliographystyle{ieeetr}
+\bibliography{biblio}
+
+\end{document}

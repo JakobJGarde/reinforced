@@ -1,0 +1,64 @@
+% ======= START: Plot for Reward-Epsilon progress =========
+\newcommand{\rlplot}[5]{
+% Parameters: 
+% #1 = CSV file path
+% #2 = Figure caption
+% #3 = Figure label
+% #4 = Y-axis min for rewards
+% #5 = Y-axis max for rewards
+\begin{figure}[htbp]
+\centering
+
+% Read the data (skip first 6 lines is hard-coded)
+\pgfplotstableread[
+    col sep=comma,
+    skip first n=6
+]{#1}\tempdatatable
+
+\begin{tikzpicture}
+\pgfplotsset{
+    scale only axis,
+    width=0.75\columnwidth,
+    height=5cm
+}
+
+\begin{axis}[
+    xlabel={},
+    ylabel={Total Reward},
+    ylabel style={color=blue!30},
+    ymin=#4, ymax=#5,
+    axis y line*=left,
+    grid=major,
+    tick label style={font=\tiny},
+    label style={font=\footnotesize}
+]
+\addplot[color=blue!30, thick, smooth] 
+    table[x=Episode, y=TotalReward] {\tempdatatable};
+\end{axis}
+
+\begin{axis}[
+    xlabel={},
+    ylabel={Epsilon $\varepsilon$},
+    ylabel style={color=red},
+    ymin=0, ymax=1,
+    axis y line*=right,
+    axis x line=none,
+    tick label style={font=\tiny},
+    label style={font=\footnotesize}
+]
+\addplot[color=red, thick, smooth] 
+    table[x=Episode, y=Epsilon] {\tempdatatable};
+\end{axis}
+\end{tikzpicture}
+
+% Custom x-label with legend
+\noindent\footnotesize
+Episode \qquad
+\textcolor{blue!30}{\rule{6pt}{1pt}} Reward \quad
+\textcolor{red}{\rule{6pt}{1pt}} Epsilon $\varepsilon$
+
+\caption{#2}
+\label{#3}
+\end{figure}
+}
+% ======= END: Plot for Reward-Epsilon progress =========

@@ -67,7 +67,7 @@ export default function Timer() {
           <span className="ml-1 text-xl">~~</span>
         </span>
       </div>
-      <div className="pointer-events-auto grid cursor-pointer grid-flow-col items-center justify-items-center divide-x-2 rounded-lg border-2 text-2xl [&>*]:bg-clip-padding [&>*]:px-3">
+      <div className="grid cursor-pointer grid-flow-col items-center justify-items-center divide-x-2 rounded-lg border-2 text-2xl [&>*]:bg-clip-padding [&>*]:px-3">
         <div
           className="flex h-full items-center justify-center bg-gradient-to-tr from-gray-800/50 from-20% to-purple-700/30 to-90% transition-colors duration-300 hover:bg-gradient-to-tr hover:from-gray-900/70 hover:to-purple-700/50"
           onClick={() => setIsActive(!isActive)}

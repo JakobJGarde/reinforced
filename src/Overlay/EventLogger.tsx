@@ -27,12 +27,12 @@ export default function EventLogger() {
       {/* --- Event Log Display --- */}
       <div className="flex justify-between bg-gray-600/30 px-2 py-1 text-sm font-bold">
         <div>Past Events</div>
-        <div className="flex gap-2">
+        <div className="pointer-events-auto flex gap-2">
           Snapshot:{" "}
-          <button className="pointer-events-auto" onClick={handleDownloadJSON}>
+          <button className="text-purple-700/60" onClick={handleDownloadJSON}>
             JSON
           </button>
-          <button className="pointer-events-auto" onClick={handleDownloadCSV}>
+          <button className="text-purple-700/60" onClick={handleDownloadCSV}>
             CSV
           </button>
         </div>

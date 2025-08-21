@@ -1,0 +1,15 @@
+\section{Results}
+
+The primary objective of this project was successfully achieved, demonstrating how fundamental reinforcement learning parameters and environmental conditions directly influence agent learning behavior. The developed browser-based environment effectively illustrates core RL concepts through real-time visualization and intuitive parameter control, enabling users to observe the exploration-exploitation trade-off without requiring programming expertise.
+
+The experimental results clearly demonstrate the impact of environmental complexity on learning performance. Figure \ref{fig:performance_no_obstacles} shows optimal learning progression in a simplified environment, where the agent successfully transitions from exploration to exploitation, achieving consistent maximum rewards after approximately 100 episodes as epsilon decays appropriately.
+
+\rlplot{data/rl_150_then_perfect.csv}{Learning progression without obstacles showing successful transition from exploration to exploitation}{fig:performance_no_obstacles}{-20}{105}
+
+In contrast, Figure \ref{fig:performance_sudden_obstacles} illustrates the challenges of non-stationary environments when obstacles are introduced mid-training. The agent's performance degrades significantly after episode 100, yet the low epsilon value prevents renewed exploration, highlighting a fundamental limitation of fixed exploration strategies.
+
+\rlplot{data/rl_100_clear_then_obstacles.csv}{Performance degradation when obstacles are introduced at episode 100, showing inadequate re-exploration}{fig:performance_sudden_obstacles}{-20}{105}
+
+Figure \ref{fig:performance_all_obstacles} demonstrates the severe learning impairment when obstacles are present from initialization. Even after 500 episodes, the agent fails to achieve consistent success, with epsilon approaching zero despite poor performance.
+
+\rlplot{data/rl_obsatcles_500.csv}{Learning failure with obstacles present from start, showing need for adaptive exploration}{fig:performance_all_obstacles}{-20}{105}
