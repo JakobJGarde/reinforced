@@ -4,7 +4,7 @@ import { useFrame } from "@react-three/fiber";
 import { useRapier, RigidBody, RapierRigidBody } from "@react-three/rapier";
 import { useEffect, useRef, useState } from "react";
 import useGame from "../../stores/useGame";
-import { type RLSettingsState } from "../../stores/useRLSettings"; // Import the RL settings store
+import { type RLSettingsState } from "../../stores/useRLSettings";
 
 import RLAgent, { type PlayerAction, type PlayerObservation } from "../RLAgent";
 import { RAPIER_COLLISION_GROUPS } from "../../utils/constants";
@@ -31,13 +31,22 @@ interface PlayerProps {
     | "rewardPerTick"
   >;
   currentActionFromAgent?: PlayerAction | null;
+  simulationSpeed?: number;
 }
+
+// Define base magnitudes for movement and jump.
+// These values represent the force/impulse per unit of 'game time' at 1x speed.
+// We'll scale them by 'scaledDelta' in useFrame.
+const MOVEMENT_FORCE_MAGNITUDE = 2.0; // Adjust this value to control how strong horizontal movement feels
+const JUMP_IMPULSE_MAGNITUDE = 0.2; // Adjust this value to control jump height
+const TORQUE_FORCE_MAGNITUDE = 1.0; // Adjust this value to control how fast the player rotates
 
 export default function Player({
   agent,
   onObserve,
   rewardConfig,
   currentActionFromAgent,
+  simulationSpeed = 1.0, // Default to normal speed
 }: PlayerProps) {
   const body = useRef<RapierRigidBody>(null!);
   const [subscribeKeys, getKeys] = useKeyboardControls();
@@ -58,15 +67,22 @@ export default function Player({
   const [wallHitThisFrame, setWallHitThisFrame] = useState(false);
 
   // --- Helper Functions for Player Actions ---
+  // These functions now receive 'scaledDelta' (or use fixed magnitudes for impulses)
   const applyJump = () => {
     const origin = body.current.translation();
-    origin.y -= 0.31;
+    origin.y -= 0.31; // Slightly below player's center
     const direction = { x: 0, y: -1, z: 0 };
     const ray = new rapier.Ray(origin, direction);
-    const hit = world.castRay(ray, 10, true);
+    // Cast ray to check for ground contact within a small distance
+    const hit = world.castRay(ray, 0.15, true);
 
-    if (hit && hit.timeOfImpact < 0.15) {
-      body.current.applyImpulse({ x: 0, y: 0.5, z: 0 }, true);
+    if (hit && hit.collider && hit.timeOfImpact < 0.15) {
+      // Apply a fixed impulse for jumping. The overall 'jump height' will
+      // be affected by the faster physics timeStep set in <Physics>.
+      body.current.applyImpulse(
+        { x: 0, y: JUMP_IMPULSE_MAGNITUDE, z: 0 },
+        true,
+      );
       return true;
     }
     return false;
@@ -77,29 +93,31 @@ export default function Player({
     backward: boolean,
     left: boolean,
     right: boolean,
-    delta: number,
+    scaledDelta: number, // Expects 'scaledDelta' here, not raw 'delta'
   ) => {
     const impulse = { x: 0, y: 0, z: 0 };
     const torque = { x: 0, y: 0, z: 0 };
 
-    const impulseStrength = 0.6 * delta;
-    const torqueStrength = 0.2 * delta;
+    // Scale movement and torque by scaledDelta. This ensures consistent feel
+    // regardless of simulation speed.
+    const movementForce = MOVEMENT_FORCE_MAGNITUDE * scaledDelta;
+    const torqueForce = TORQUE_FORCE_MAGNITUDE * scaledDelta;
 
     if (forward) {
-      impulse.z -= impulseStrength;
-      torque.x -= torqueStrength;
+      impulse.z -= movementForce;
+      torque.x -= torqueForce;
     }
     if (right) {
-      impulse.x += impulseStrength;
-      torque.z -= torqueStrength;
+      impulse.x += movementForce;
+      torque.z -= torqueForce;
     }
     if (backward) {
-      impulse.z += impulseStrength;
-      torque.x += torqueStrength;
+      impulse.z += movementForce;
+      torque.x += torqueForce;
     }
     if (left) {
-      impulse.x -= impulseStrength;
-      torque.z += torqueStrength;
+      impulse.x -= movementForce;
+      torque.z += torqueForce;
     }
 
     body.current.applyImpulse(impulse, true);
@@ -128,12 +146,7 @@ export default function Player({
 
     if (!agent) {
       // Only subscribe to keyboard if no agent is controlling
-      unsubscribeJump = subscribeKeys(
-        (state) => state.jump,
-        (value) => {
-          if (value) applyJump();
-        },
-      );
+      unsubscribeJump = subscribeKeys((state) => state.jump);
       unsubscribeAny = subscribeKeys(() => {
         start();
       });
@@ -163,7 +176,8 @@ export default function Player({
         break;
       case "wall":
         setWallHitThisFrame(true);
-        addEvent(`Wall Collision: ${rewardConfig.penaltyObstacleHit}`);
+        // FIX: Ensure correct penalty is applied for wall hits
+        addEvent(`Wall Collision: ${rewardConfig.penaltyWallHit}`);
         break;
       case "ground":
         break;
@@ -173,8 +187,13 @@ export default function Player({
   };
 
   useFrame((state, delta) => {
-    // Calculate current frame's immediate reward (per-tick, collisions)
-    let currentFrameReward = rewardConfig.rewardPerTick;
+    // Crucially, calculate scaledDelta once at the beginning of useFrame.
+    // All time-dependent calculations in this component should use this scaledDelta.
+    const scaledDelta = delta * simulationSpeed;
+
+    // Calculate current frame's immediate reward
+    // Reward per tick should also be scaled by how much 'game time' has passed.
+    let currentFrameReward = rewardConfig.rewardPerTick * scaledDelta;
 
     if (obstacleHitThisFrame) {
       currentFrameReward += rewardConfig.penaltyObstacleHit;
@@ -188,38 +207,44 @@ export default function Player({
 
     // --- Agent Control Logic ---
     if (agent && phase === "playing") {
-      const currentObservation = getObservation(); // Get the observation *after* physics step
-
-      // Report current observation, reward, and done status to Experience
-      // Experience will use this to call agent.learn and then decide the next action
-      if (onObserve) {
-        onObserve(currentObservation, currentFrameReward, false); // `false` for non-terminal steps
-      }
-
       // Agent chooses action based on current observation
       switch (currentActionFromAgent) {
         case "forward":
-          applyMovement(true, false, false, false, delta);
+          applyMovement(true, false, false, false, scaledDelta); // Pass scaledDelta
           break;
         case "backward":
-          applyMovement(false, true, false, false, delta);
+          applyMovement(false, true, false, false, scaledDelta); // Pass scaledDelta
           break;
         case "jump":
-          applyJump();
+          applyJump(); // Jump impulse does not depend on scaledDelta directly in its magnitude
           break;
         case "none":
           /* do nothing, let physics handle it */ break;
         default:
           break;
       }
+      // Get observation and report *after* applying actions for this frame.
+      // This ensures the observation reflects the result of actions.
+      const currentObservation = getObservation();
+      if (onObserve) {
+        onObserve(currentObservation, currentFrameReward, false); // `false` for non-terminal steps
+      }
     } else if (!agent) {
       // Keyboard control
-      const { forward, backward, left, right } = getKeys();
-      applyMovement(forward, backward, left, right, delta);
+      const { forward, backward, left, right, jump } = getKeys(); // Get jump state here
+
+      // Apply movement
+      applyMovement(forward, backward, left, right, scaledDelta); // Pass scaledDelta
+
+      // Apply jump
+      if (jump) {
+        applyJump(); // Jump impulse does not depend on scaledDelta directly in its magnitude
+      }
     }
 
     /**
-     * Camera (unaffected)
+     * Camera
+     * Camera smoothing should also be scaled by scaledDelta for consistency.
      */
     const bodyPosition = body.current.translation();
     const cameraPosition = new THREE.Vector3();
@@ -231,29 +256,28 @@ export default function Player({
     cameraTarget.copy(bodyPosition);
     cameraTarget.y += 0.25;
 
-    smoothedCameraPostion.lerp(cameraPosition, 5 * delta);
-    smoothedCameraTarget.lerp(cameraTarget, 5 * delta);
+    smoothedCameraPostion.lerp(cameraPosition, 5 * scaledDelta); // Use scaledDelta
+    smoothedCameraTarget.lerp(cameraTarget, 5 * scaledDelta); // Use scaledDelta
 
     state.camera.position.copy(smoothedCameraPostion);
     state.camera.lookAt(smoothedCameraTarget);
 
     /**
-     * Phases - Game End Conditions (mostly unaffected, but ensure onObserve is called correctly)
+     * Phases - Game End Conditions
+     * Observation calls here also need to be aware of the reward earned on a terminal step.
      */
     const isPlayerAtEnd = bodyPosition.z < -(blocksCount * 4 + 2);
     const isPlayerFallen = bodyPosition.y < -4;
 
     if (isPlayerAtEnd && phase !== "ended") {
       end();
-      // Inform Experience about the terminal state
       if (onObserve) {
-        onObserve(getObservation(), rewardConfig.rewardGoal, true);
+        onObserve(getObservation(), rewardConfig.rewardGoal, true); // Terminal reward
       }
     } else if (isPlayerFallen && phase !== "ended") {
       restart();
-      // Inform Experience about the terminal state
       if (onObserve) {
-        onObserve(getObservation(), rewardConfig.penaltyFall, true);
+        onObserve(getObservation(), rewardConfig.penaltyFall, true); // Terminal penalty
       }
     }
   });
@@ -272,7 +296,7 @@ export default function Player({
       vel_x: playerVelocity.x,
       vel_y: playerVelocity.y,
       vel_z: playerVelocity.z,
-      distance_to_end: distanceToEnd, // Now explicitly included
+      distance_to_end: distanceToEnd,
     };
   };
 

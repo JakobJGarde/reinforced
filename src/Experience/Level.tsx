@@ -1,9 +1,10 @@
 import * as THREE from "three";
 import { CuboidCollider, RigidBody } from "@react-three/rapier";
 import { useMemo } from "react";
-import { useGLTF } from "@react-three/drei";
+import { Text, useGLTF } from "@react-three/drei";
 import { RAPIER_COLLISION_GROUPS } from "../utils/constants";
 import React from "react";
+import useRLSettings from "../stores/useRLSettings";
 
 const boxGeometry = new THREE.BoxGeometry(1, 1, 1);
 const floor1Material = new THREE.MeshStandardMaterial({ color: "limegreen" });
@@ -40,6 +41,14 @@ function BlockEnd({
   });
   return (
     <group position={position}>
+      <Text
+        font="./bebas-neue-v9-latin-regular.woff"
+        scale={1}
+        position={[0, 2.25, 2]}
+      >
+        FINISH
+        <meshBasicMaterial toneMapped={false} />
+      </Text>
       <mesh
         geometry={boxGeometry}
         material={floor1Material}
@@ -128,6 +137,7 @@ type LevelProps = {
     floorMaterial?: THREE.Material;
     obstacleMaterial?: THREE.Material;
   }>[];
+  seed?: number; // Optional seed for randomization
   isRandom?: boolean;
 };
 
@@ -136,17 +146,26 @@ function Level({
   obstacles,
   isRandom = true, // Default to random
 }: LevelProps) {
+  const { isObstaclesEnabled } = useRLSettings();
+
   const blocks = useMemo(() => {
     const blocks = [];
-    for (let i = 0; i < count; i++) {
-      let obstacle;
-      if (isRandom)
-        obstacle = obstacles[Math.floor(Math.random() * obstacles.length)];
-      else obstacle = obstacles[i % obstacles.length]; // Cycle through obstacles if not random
-      blocks.push(obstacle);
+    if (isObstaclesEnabled) {
+      for (let i = 0; i < count; i++) {
+        let obstacle;
+        if (isRandom)
+          obstacle = obstacles[Math.floor(Math.random() * obstacles.length)];
+        else obstacle = obstacles[i % obstacles.length];
+        blocks.push(obstacle);
+      }
+    } else {
+      // If obstacles are not enabled, push BlockStart components instead
+      for (let i = 0; i < count; i++) {
+        blocks.push(BlockStart);
+      }
     }
     return blocks;
-  }, [count, obstacles, isRandom]);
+  }, [count, obstacles, isRandom, isObstaclesEnabled]);
 
   return (
     <>

@@ -1,67 +1,134 @@
-// src/stores/useRLSettings.ts
 import { create } from "zustand";
 import { subscribeWithSelector } from "zustand/middleware";
 
 export interface RLSettingsState {
   isRLEnabled: boolean;
-  isLevelRandom: boolean; // Controls randomness of obstacles
-  learningRate: number; // Alpha (e.g., 0.1)
-  discountFactor: number; // Gamma (e.g., 0.95)
-  epsilon: number; // For exploration (e.g., 1.0)
-  epsilonDecay: number; // Decay rate per step/episode (e.g., 0.001)
-  minEpsilon: number; // Minimum epsilon value (e.g., 0.01)
-
-  // Reward/Penalty values (you'll need to use these in Player.tsx's calculateReward)
-  rewardGoal: number; // Reward for reaching the end
-  penaltyFall: number; // Penalty for falling off
-  penaltyObstacleHit: number; // Penalty for hitting an obstacle (requires collision detection)
-  penaltyWallHit: number; // Penalty for hitting a wall (if applicable)
-  rewardPerTick: number; // Small negative reward to encourage faster completion
-
   toggleRLEnabled: () => void;
+
+  // Environment Settings
+  isObstaclesEnabled: boolean;
+  toggleObstaclesEnabled: () => void;
+
+  isLevelRandom: boolean; // Only relevant when obstacles are enabled - Controls randomness of obstacles
   toggleLevelRandom: () => void;
+
+  simulationSpeed: number; // Speed of the simulation (e.g., 1.0 for normal speed)
+  setSimulationSpeed: (speed: number) => void;
+
+  // RL parameters for user tweaking
+  learningRate: number; // How fast to learn (0.01 - 0.5)
   setLearningRate: (rate: number) => void;
+
+  discountFactor: number; // How much to value future rewards (0.8 - 0.99)
   setDiscountFactor: (factor: number) => void;
+
+  epsilon: number; // Current exploration rate (0.0 - 1.0)
   setEpsilon: (value: number) => void;
-  setEpsilonDecay: (value: number) => void;
-  setMinEpsilon: (value: number) => void;
+
+  // Reward values - keeping original names for compatibility
+  rewardGoal: number; // Reward for reaching the goal (50 - 200)
   setRewardGoal: (value: number) => void;
+
+  penaltyFall: number; // Penalty for falling off the level (-50 to -5)
   setPenaltyFall: (value: number) => void;
-  setPenaltyObstacleHit: (value: number) => void;
-  setPenaltyWallHit: (value: number) => void; // Add this if you implement wall collisions
+
+  penaltyWallHit: number; // Penalty for hitting walls (-10 to -1)
+  setPenaltyWallHit: (value: number) => void;
+
+  rewardPerTick: number; // Small reward/penalty per step (-0.5 to 0.1)
   setRewardPerTick: (value: number) => void;
+
+  penaltyObstacleHit: number; // Hard-coded penalty (not exposed in UI)
+
+  // Convenience methods
+  decayEpsilon: () => void;
+  resetEpsilon: () => void;
+  resetToDefaults: () => void;
+
+  // Stats for debugging (read-only)
+  episodeCount: number;
+  incrementEpisode: () => void;
+  resetStats: () => void;
 }
 
 const useRLSettings = create<RLSettingsState>()(
-  subscribeWithSelector((set) => ({
-    isRLEnabled: false, // Default to off
-    isLevelRandom: true, // Default level obstacles to random
-    learningRate: 0.1,
-    discountFactor: 0.95,
-    epsilon: 1.0,
-    epsilonDecay: 0.0001, // A bit lower decay
-    minEpsilon: 0.01,
-
-    rewardGoal: 100,
-    penaltyFall: -50,
-    penaltyObstacleHit: -10,
-    penaltyWallHit: -5,
-    rewardPerTick: -0.01,
-
+  subscribeWithSelector((set, get) => ({
+    // Manual vs RL settings
+    isRLEnabled: false,
     toggleRLEnabled: () =>
       set((state) => ({ isRLEnabled: !state.isRLEnabled })),
+
+    // Environment Settings
+    isObstaclesEnabled: false,
+    toggleObstaclesEnabled: () =>
+      set((state) => ({ isObstaclesEnabled: !state.isObstaclesEnabled })),
+
+    isLevelRandom: true, // Default level obstacles to random
     toggleLevelRandom: () =>
       set((state) => ({ isLevelRandom: !state.isLevelRandom })),
-    setLearningRate: (rate) => set({ learningRate: rate }),
-    setDiscountFactor: (factor) => set({ discountFactor: factor }),
-    setEpsilon: (value) => set({ epsilon: value }),
-    setEpsilonDecay: (value) => set({ epsilonDecay: value }),
-    setMinEpsilon: (value) => set({ minEpsilon: value }),
-    setRewardGoal: (value) => set({ rewardGoal: value }),
-    setPenaltyFall: (value) => set({ penaltyFall: value }),
-    setPenaltyObstacleHit: (value) => set({ penaltyObstacleHit: value }),
-    setPenaltyWallHit: (value) => set({ penaltyWallHit: value }),
-    setRewardPerTick: (value) => set({ rewardPerTick: value }),
+
+    simulationSpeed: 1.0, // Default simulation speed
+    setSimulationSpeed: (speed) => set({ simulationSpeed: speed }),
+
+    // RL Parameters
+    learningRate: 0.1, // How fast to update Q-values
+    setLearningRate: (rate) =>
+      set({ learningRate: Math.max(0.01, Math.min(0.5, rate)) }),
+
+    discountFactor: 0.95, // Higher value for longer-term planning
+    setDiscountFactor: (factor) =>
+      set({ discountFactor: Math.max(0.5, Math.min(0.99, factor)) }),
+
+    epsilon: 1.0, // Start with full exploration
+    setEpsilon: (value) =>
+      set({ epsilon: Math.max(0.0, Math.min(1.0, value)) }),
+
+    // Reward values - user configurable
+    rewardGoal: 100, // Reward for reaching the goal
+    setRewardGoal: (value) =>
+      set({ rewardGoal: Math.max(10, Math.min(500, value)) }),
+
+    penaltyFall: -10, // Penalty for falling off
+    setPenaltyFall: (value) =>
+      set({ penaltyFall: Math.max(-50, Math.min(-1, value)) }),
+
+    penaltyWallHit: -2, // Penalty for hitting walls
+    setPenaltyWallHit: (value) =>
+      set({ penaltyWallHit: Math.max(-10, Math.min(-0.5, value)) }),
+
+    rewardPerTick: -0.1, // Small penalty per step to encourage speed
+    setRewardPerTick: (value) =>
+      set({ rewardPerTick: Math.max(-0.5, Math.min(0.1, value)) }),
+
+    // Hard-coded penalty (not in UI)
+    penaltyObstacleHit: -5,
+
+    // Convenience methods
+    decayEpsilon: () => {
+      const { epsilon } = get();
+      const newEpsilon = Math.max(0.05, epsilon * 0.98); // 0.5% decay per step
+      set({ epsilon: newEpsilon });
+    },
+
+    resetEpsilon: () => set({ epsilon: 1.0 }),
+
+    resetToDefaults: () =>
+      set({
+        learningRate: 0.1,
+        discountFactor: 0.9,
+        epsilon: 1.0,
+        rewardGoal: 100,
+        penaltyFall: -10,
+        penaltyWallHit: -2,
+        rewardPerTick: -0.1,
+        episodeCount: 0,
+      }),
+
+    // Simple stats
+    episodeCount: 0,
+    incrementEpisode: () =>
+      set((state) => ({ episodeCount: state.episodeCount + 1 })),
+    resetStats: () => set({ episodeCount: 0 }),
   })),
 );
 

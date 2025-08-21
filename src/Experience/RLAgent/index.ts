@@ -9,20 +9,10 @@ export interface PlayerObservation {
   distance_to_end: number;
 }
 
-interface Rewards {
-  goal: number;
-  fall: number;
-  obstacleHit: number;
-  wallHit: number;
-  perTick: number;
-}
-
-// Discretization constants (adjust based on your game's scale)
-const MAX_LEVEL_LENGTH_FOR_BINNING = 4 * 10 + 2; // Assuming max blocksCount is around 10
-const Z_BINS = 20; // More bins for Z to capture progress better
-const Y_BINS = 5; // Bins for player's height (e.g., in air, on ground, fallen)
-const X_BINS = 5; // Bins for player's X position (left/right on path)
-const VEL_Z_BINS = 5; // Bins for forward velocity
+// Simplified discretization - but with more granular distance tracking
+const MAX_DISTANCE = 50; // Adjust based on your level length
+const DISTANCE_BINS = 20; // More bins to track gradual progress
+const Y_BINS = 3; // Add Y position back - important for learning jumps
 
 const discretize = (
   value: number,
@@ -30,63 +20,44 @@ const discretize = (
   max: number,
   numBins: number,
 ): number => {
-  if (numBins <= 0) return 0; // Avoid division by zero
+  if (numBins <= 0) return 0;
   if (value < min) return 0;
   if (value > max) return numBins - 1;
   return Math.floor(((value - min) / (max - min)) * numBins);
 };
 
-export type AgentStateKey = string; // For simplicity, we use a string representation of the state
+export type AgentStateKey = string;
 
 class RLAgent {
   qTable: Map<AgentStateKey, number[]>;
-  learningRate: number;
-  discountFactor: number;
-  epsilon: number;
-  epsilonDecay: number;
-  minEpsilon: number;
-  rewards: Rewards; // Store reward values
-
   actions: PlayerAction[];
+
+  // Hard-coded parameters (not exposed to user)
+  private readonly epsilonDecay = 0.99; // Faster decay: 0.99 instead of 0.995
+  private readonly minEpsilon = 0.05; // Higher minimum for continued exploration
 
   constructor() {
     this.qTable = new Map();
-    this.learningRate = 0.1;
-    this.discountFactor = 0.95;
-    this.epsilon = 1.0;
-    this.epsilonDecay = 0.0001;
-    this.minEpsilon = 0.01;
-    this.rewards = {
-      // Default values, will be overwritten by useRLSettings
-      goal: 100,
-      fall: -50,
-      obstacleHit: -10,
-      wallHit: -5,
-      perTick: -0.01,
-    };
-
     this.actions = ["forward", "backward", "jump", "none"];
   }
 
-  // Convert an observation into a discrete state string
+  // Include Y position to help with learning when to jump
   getDiscreteState(observation: PlayerObservation): string {
-    const zState = discretize(
+    const distanceState = discretize(
       observation.distance_to_end,
       0,
-      MAX_LEVEL_LENGTH_FOR_BINNING,
-      Z_BINS,
+      MAX_DISTANCE,
+      DISTANCE_BINS,
     );
-    const yState = discretize(observation.player_y, -5, 5, Y_BINS); // Assuming player Y range
-    const xState = discretize(observation.player_x, -2, 2, X_BINS); // Assuming player X range
-    const velZState = discretize(observation.vel_z, -1, 1, VEL_Z_BINS); // Assuming velocity range
 
-    return `${zState}_${yState}_${xState}_${velZState}`; // State string
-  }
+    const yState = discretize(
+      observation.player_y,
+      -2, // Lower bound for Y
+      4, // Upper bound for Y (in air)
+      Y_BINS,
+    );
 
-  public getAgentStateKey(rawDiscreteState: string): AgentStateKey {
-    // In a more complex scenario, you might hash the string here,
-    // or validate it. For now, it's a simple pass-through.
-    return rawDiscreteState;
+    return `${distanceState}_${yState}`;
   }
 
   getQValues(state: string): number[] {
@@ -96,17 +67,17 @@ class RLAgent {
     return this.qTable.get(state)!;
   }
 
-  chooseAction(observation: PlayerObservation): PlayerAction {
+  chooseAction(observation: PlayerObservation, epsilon: number): PlayerAction {
     const state = this.getDiscreteState(observation);
     const qValues = this.getQValues(state);
 
-    if (Math.random() < this.epsilon) {
+    if (Math.random() < epsilon) {
+      // Explore: random action
       const randomIndex = Math.floor(Math.random() * this.actions.length);
       return this.actions[randomIndex];
     } else {
+      // Exploit: best known action
       const maxQ = Math.max(...qValues);
-      // const bestActionIndex = qValues.indexOf(maxQ);
-      // Handle ties randomly to encourage exploring equivalent best actions
       const bestActions = qValues
         .map((q, i) => (q === maxQ ? i : -1))
         .filter((i) => i !== -1);
@@ -122,7 +93,9 @@ class RLAgent {
     reward: number,
     nextObservation: PlayerObservation,
     done: boolean,
-  ) {
+    learningRate: number,
+    discountFactor: number,
+  ): void {
     const state = this.getDiscreteState(observation);
     const actionIndex = this.actions.indexOf(action);
 
@@ -136,24 +109,17 @@ class RLAgent {
       const nextState = this.getDiscreteState(nextObservation);
       const nextQValues = this.getQValues(nextState);
       const maxNextQ = Math.max(...nextQValues);
-      newQ = reward + this.discountFactor * maxNextQ;
+      newQ = reward + discountFactor * maxNextQ;
     }
 
-    qValues[actionIndex] = oldQ + this.learningRate * (newQ - oldQ);
+    // Q-learning update
+    qValues[actionIndex] = oldQ + learningRate * (newQ - oldQ);
     this.qTable.set(state, qValues);
-
-    // Decay epsilon after each learning step
-    this.epsilon = Math.max(this.minEpsilon, this.epsilon - this.epsilonDecay);
   }
 
-  reset() {
-    // Reset agent's internal state for a new episode
-    // Typically, epsilon might not reset here, but continue decaying across episodes
-    // If you want epsilon to reset for each new *training run*, manage that in Experience.tsx
-  }
-
-  public getEpsilon(): number {
-    return this.epsilon;
+  // Utility method to decay epsilon
+  decayEpsilon(currentEpsilon: number): number {
+    return Math.max(this.minEpsilon, currentEpsilon * this.epsilonDecay);
   }
 
   public getQTableSize(): number {
@@ -164,24 +130,36 @@ class RLAgent {
     return this.qTable.get(stateKey);
   }
 
+  public getCurrentDiscreteStateKey(
+    rawObservation: PlayerObservation,
+  ): AgentStateKey {
+    return this.getDiscreteState(rawObservation);
+  }
+
   public getQTableSnapshot(
     maxEntries: number = 10,
-  ): Array<{ state: string; qValues: number[] }> {
-    const snapshot: Array<{ state: string; qValues: number[] }> = [];
+  ): Array<{ state: string; qValues: number[]; actionNames: string[] }> {
+    const snapshot: Array<{
+      state: string;
+      qValues: number[];
+      actionNames: string[];
+    }> = [];
     let count = 0;
     for (const [stateKey, qValues] of this.qTable.entries()) {
       if (count >= maxEntries) break;
-      snapshot.push({ state: stateKey, qValues: [...qValues] }); // Spread to return a copy
+      snapshot.push({
+        state: stateKey,
+        qValues: [...qValues],
+        actionNames: [...this.actions],
+      });
       count++;
     }
     return snapshot;
   }
 
-  public getCurrentDiscreteStateKey(
-    rawObservation: PlayerObservation,
-  ): AgentStateKey {
-    const discreteState = this.getDiscreteState(rawObservation);
-    return this.getAgentStateKey(discreteState);
+  // Reset Q-table for new training session
+  public resetQTable(): void {
+    this.qTable.clear();
   }
 }
 

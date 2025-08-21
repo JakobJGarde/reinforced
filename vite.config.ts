@@ -6,6 +6,7 @@ import restart from "vite-plugin-restart";
 export default {
   root: "src/",
   publicDir: "../public/",
+  base: "/reinforced/",
   plugins: [
     tailwindcss(),
     // Restart server on static/public file change

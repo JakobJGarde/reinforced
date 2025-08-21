@@ -14,7 +14,6 @@ interface RLStatsState {
   currentQValues: number[] | undefined;
   qTableSnapshot: Array<{ state: AgentStateKey; qValues: number[] }>; // Array of top N states
   eventLog: string[];
-  maxLogEntries: number;
 
   // Actions to update the state
   updateStats: (
@@ -40,7 +39,6 @@ const initialState: RLStatsState = {
   currentQValues: undefined,
   qTableSnapshot: [],
   eventLog: [],
-  maxLogEntries: 5,
   updateStats: () => {},
   addEvent: () => {},
   resetStats: () => {},
@@ -71,11 +69,6 @@ const useRLStats = create<RLStatsState>()(
     addEvent: (message: string) => {
       set((state) => {
         const newLog = [...state.eventLog, message];
-        if (newLog.length > state.maxLogEntries) {
-          return {
-            eventLog: newLog.slice(newLog.length - state.maxLogEntries),
-          };
-        }
         return { eventLog: newLog };
       });
     },

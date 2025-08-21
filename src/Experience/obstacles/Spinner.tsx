@@ -38,6 +38,7 @@ export default function Spinner({
         scale={[4, 0.2, 4]}
         receiveShadow
       />
+
       <RigidBody
         ref={obstacle}
         type="kinematicPosition"
