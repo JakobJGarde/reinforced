@@ -39,7 +39,11 @@ The environment initially included three obstacles positioned along the path, co
 
 \subsubsection{Exploration Strategy}
 An $\varepsilon$-greedy exploration strategy was implemented to address the exploration-exploitation trade-off inherent in MDP solutions. This strategy ensures sufficient exploration of the state-action space to guarantee convergence to the optimal policy, as required by the theoretical foundations of Q-learning in finite MDPs. The exploration rate $\varepsilon$ begins at 1.0 (full exploration) and decays exponentially according to:
-[existing exploration content]
+
+\begin{equation}
+\varepsilon_{t+1} = \max(\varepsilon_{min}, \varepsilon_t \times 0.98)
+\end{equation}
+where $\varepsilon_{min} = 0.05$ represents the minimum exploration rate to maintain continued exploration throughout training.
 
 This decay schedule ensures that early learning phases prioritize exploration of the MDP's state-action space, while later phases focus on exploitation of learned optimal actions, consistent with the convergence requirements for Q-learning in finite MDPs.
 
@@ -64,7 +68,16 @@ The learning algorithm utilizes the following hyperparameters, selected through 
 \end{itemize}
 
 \subsection{User Interface Design}
-The user interface was designed to provide intuitive control over fundamental reinforcement learning parameters and environmental conditions, enabling users to explore the impact of different configurations on agent behavior without requiring programming knowledge.
+
+\begin{figure}[htbp]
+    \centering
+    \includegraphics[width=0.45\textwidth]
+    {figures/rl_racing_main.png}
+    \caption{Final web application as seen on initial load.}
+    \label{fig:rl_racing_main}
+\end{figure}
+
+The user interface was designed to provide intuitive control over fundamental reinforcement learning parameters and environmental conditions, enabling users to explore the impact of different configurations on agent behavior without requiring programming knowledge - Figure \ref{fig:rl_racing_main}.
 
 \subsubsection{Real-time Monitoring Components}
 A Timer component was implemented to display the duration of each episode in real-time. This component was initially designed as part of a broader simulation speed control system that would allow users to accelerate the learning process and observe long-term learning trends within compressed timeframes. However, due to technical complexity in synchronizing the physics simulation with variable time scales and project time constraints, the simulation speed control feature was not fully implemented in the final system.

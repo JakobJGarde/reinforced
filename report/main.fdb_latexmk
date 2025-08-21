@@ -1,14 +1,14 @@
 # Fdb version 4
-["bibtex main"] 1755787067.41456 "main.aux" "main.bbl" "main" 1755787392.73712 0
-  "./biblio.bib" 1755781165.26443 5279 c1b03c45724ecb2be5577f6f6a26b0ec ""
+["bibtex main"] 1755799198.2849 "main.aux" "main.bbl" "main" 1755799524.93152 0
+  "./biblio.bib" 1755798341.8043 5280 87d9cfabc2296492051961efaea02439 ""
   "/opt/homebrew/Cellar/texlive/20250308_1/share/texmf-dist/bibtex/bst/base/ieeetr.bst" 1741388039 18361 1a00e58565e7f19bf2b3e1bfb82254ae ""
-  "main.aux" 1755787392.58465 5463 dae4bb284157183b116bd08c374bfe97 "pdflatex"
+  "main.aux" 1755799524.78466 5678 18f8c2b87e44c22e9c8ba824cbc87b7f "pdflatex"
   (generated)
   "main.bbl"
   "main.blg"
   (rewritten before read)
-["pdflatex"] 1755787391.34265 "/Users/jakobgarde/Documents/Development/reinforced/report/main.tex" "main.pdf" "main" 1755787392.73724 0
-  "/Users/jakobgarde/Documents/Development/reinforced/report/main.tex" 1755787391.15224 2814 7f61bb980b45a53c7065c01946738a68 ""
+["pdflatex"] 1755799523.37763 "/Users/jakobgarde/Documents/Development/reinforced/report/main.tex" "main.pdf" "main" 1755799524.93164 0
+  "/Users/jakobgarde/Documents/Development/reinforced/report/main.tex" 1755798830.81675 2451 9bc0b1185b33ac721f6c1261c7fbf407 ""
   "/opt/homebrew/Cellar/texlive/20250308_1/share/texmf-dist/fonts/enc/dvips/base/8r.enc" 1741388039 4850 80dc9bab7f31fb78a000ccfed0e27cab ""
   "/opt/homebrew/Cellar/texlive/20250308_1/share/texmf-dist/fonts/map/fontname/texfonts.map" 1741388039 3524 cb3e574dea2d1052e39280babc910dc8 ""
   "/opt/homebrew/Cellar/texlive/20250308_1/share/texmf-dist/fonts/map/pdftex/updmap/pdftex.map" 1741388039 5466553 2748998d7db8078826afa1f272036265 ""
@@ -226,14 +226,15 @@
   "data/rl_100_clear_then_obstacles.csv" 1755774812.0094 8977 4dd38bd86c936fe0e1628184193e5b7d ""
   "data/rl_150_then_perfect.csv" 1755770478.81966 9351 5bcf0cf452bc9ebf2f6ee57bc3c037f6 ""
   "data/rl_obsatcles_500.csv" 1755775985.36156 30923 0c59497fad096778db4d75f537ae072d ""
-  "main.aux" 1755787392.58465 5463 dae4bb284157183b116bd08c374bfe97 "pdflatex"
-  "main.bbl" 1755787067.46071 943 0d6b06ee0bc029c3f8cf9ab12e414694 "bibtex main"
-  "main.out" 1755787392.58536 4663 cbc1e68829045e60e4a6d4b1fb0ee02f "pdflatex"
-  "main.tex" 1755787391.15224 2814 7f61bb980b45a53c7065c01946738a68 ""
-  "sections/discussion.tex" 1755786328.32554 1016 9e5d4df0533af122adb87e4a3cbbd90b ""
-  "sections/introduction.tex" 1755783435.50015 2366 247d92fd3915135d976ef2734955868d ""
-  "sections/literature_review.tex" 1755782682.04661 3741 fe9a3cd2559dff4b7e32c7f267088957 ""
-  "sections/methodology.tex" 1755785393.94817 7645 6e1cb9386eff93f280651cd3b378523b ""
+  "figures/rl_racing_main.png" 1755797212.43199 1371523 31148c7de2485c1ea0b6b01110e89474 ""
+  "main.aux" 1755799524.78466 5678 18f8c2b87e44c22e9c8ba824cbc87b7f "pdflatex"
+  "main.bbl" 1755799198.33179 687 4158a74ee365e43558d0f6c147dd9dfe "bibtex main"
+  "main.out" 1755799524.78532 4663 cbc1e68829045e60e4a6d4b1fb0ee02f "pdflatex"
+  "main.tex" 1755798830.81675 2451 9bc0b1185b33ac721f6c1261c7fbf407 ""
+  "sections/discussion.tex" 1755799523.17415 775 9e6a46baf0c959f1284d772a0541abe4 ""
+  "sections/introduction.tex" 1755798623.40385 2386 5117cc427904b2ed6a0f0664ab395656 ""
+  "sections/literature_review.tex" 1755798341.68934 3714 771e4ec4fc7819f3a881d6e7266f6640 ""
+  "sections/methodology.tex" 1755799341.56848 8099 ff64a8787d12ff7029878707b6566eef ""
   "sections/results.tex" 1755786330.96328 2031 6ae6105859d4e0e85c4d2bf784056ec3 ""
   "utils.tex" 1755777279.89241 1438 e30cb67f044b8d428d4930021f213d87 ""
   (generated)
