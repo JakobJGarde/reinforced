@@ -28,7 +28,15 @@ const discretize = (
 
 export type AgentStateKey = string;
 
-class RLAgent {
+// Interface for the RLAgent to ensure proper typing - exported for use in other files
+export interface RLAgentInterface {
+  getQTableSize(): number;
+  getQTableSnapshot(
+    maxEntries: number,
+  ): Array<{ state: string; qValues: number[]; actionNames: string[] }>;
+}
+
+class RLAgent implements RLAgentInterface {
   qTable: Map<AgentStateKey, number[]>;
   actions: PlayerAction[];
 

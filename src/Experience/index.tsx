@@ -81,10 +81,13 @@ export default function Experience() {
     } else if (!isRLEnabled && rlDataExporter.isCurrentlyRecording()) {
       // Stop recording and export final Q-table
       if (rlAgent.current) {
+        console.log("Stopping recording and exporting Q-table...");
+        console.log("Q-table size:", rlAgent.current.getQTableSize());
         const qTableSnapshot = createQTableSnapshot(
           rlAgent.current,
           stateVisitCounts.current,
         );
+        console.log("Q-table snapshot created:", qTableSnapshot.length);
         rlDataExporter.finishRecording(qTableSnapshot, epsilon);
       }
     }
@@ -202,6 +205,13 @@ export default function Experience() {
       learningRate,
       discountFactor,
     );
+
+    // Debug: Log Q-table growth periodically
+    if (episodeCount.current % 10 === 0 && done) {
+      console.log(
+        `Episode ${episodeCount.current}: Q-table size = ${rlAgent.current.getQTableSize()}`,
+      );
+    }
 
     if (done) {
       // Determine outcome

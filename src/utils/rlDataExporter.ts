@@ -60,6 +60,14 @@ export interface TrainingSession {
   };
 }
 
+// Define the RLAgent interface for proper typing
+export interface RLAgentInterface {
+  getQTableSize(): number;
+  getQTableSnapshot(
+    maxEntries: number,
+  ): Array<{ state: string; qValues: number[]; actionNames: string[] }>;
+}
+
 class RLDataExporter {
   private currentSession: TrainingSession | null = null;
   private isRecording = false;
@@ -232,7 +240,7 @@ Q-table data available in JSON export.`;
 
   // Export current Q-table without stopping recording
   exportCurrentQTable(
-    agent: any,
+    agent: RLAgentInterface,
     stateVisitCounts: Map<string, number> = new Map(),
   ): void {
     if (!this.currentSession) {
@@ -240,7 +248,7 @@ Q-table data available in JSON export.`;
       return;
     }
 
-    const qTableSnapshot = [];
+    const qTableSnapshot: QTableSnapshot[] = [];
     const qTableSize = agent.getQTableSize();
 
     if (qTableSize === 0) {
@@ -250,12 +258,14 @@ Q-table data available in JSON export.`;
 
     // Get current Q-table snapshot
     const snapshot = agent.getQTableSnapshot(1000);
-    snapshot.forEach((entry) => {
-      qTableSnapshot.push({
-        ...entry,
-        visits: stateVisitCounts.get(entry.state) || 0,
-      });
-    });
+    snapshot.forEach(
+      (entry: { state: string; qValues: number[]; actionNames: string[] }) => {
+        qTableSnapshot.push({
+          ...entry,
+          visits: stateVisitCounts.get(entry.state) || 0,
+        });
+      },
+    );
 
     // Create Q-table CSV
     const qTableHeaders = [
@@ -266,9 +276,9 @@ Q-table data available in JSON export.`;
       "Action_None",
       "Visits",
     ];
-    const qTableRows = qTableSnapshot.map((entry) => [
+    const qTableRows = qTableSnapshot.map((entry: QTableSnapshot) => [
       entry.state,
-      ...entry.qValues.map((q) => q.toFixed(4)),
+      ...entry.qValues.map((q: number) => q.toFixed(4)),
       entry.visits,
     ]);
 
@@ -307,7 +317,7 @@ export const rlDataExporter = new RLDataExporter();
 
 // Helper function to create Q-table snapshot with visit counts
 export function createQTableSnapshot(
-  agent: any, // Your RLAgent instance
+  agent: RLAgentInterface,
   stateVisitCounts: Map<string, number> = new Map(),
 ): QTableSnapshot[] {
   console.log("Creating Q-table snapshot...");
@@ -321,8 +331,10 @@ export function createQTableSnapshot(
   const snapshot = agent.getQTableSnapshot(1000); // Get all entries
   console.log("Raw Q-table snapshot:", snapshot.slice(0, 3)); // Log first few entries
 
-  return snapshot.map((entry) => ({
-    ...entry,
-    visits: stateVisitCounts.get(entry.state) || 0,
-  }));
+  return snapshot.map(
+    (entry: { state: string; qValues: number[]; actionNames: string[] }) => ({
+      ...entry,
+      visits: stateVisitCounts.get(entry.state) || 0,
+    }),
+  );
 }
